@@ -196,8 +196,12 @@ router.get("/care", async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error obteniendo datos" });
+    console.error("ERROR REAL:", error);
+    
+    res.status(500).json({
+      error: error.message,
+      stack: error.stack
+    });
   }
 });
 
