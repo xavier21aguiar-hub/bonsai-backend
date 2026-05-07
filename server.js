@@ -13,8 +13,13 @@ app.use(express.json());
 
 app.use("/api/bonsai", bonsaiRoutes);
 
-app.listen(3000, () => {
-    console.log("Servidor corriendo en puerto 3000");
-});
+const startServer = async () => {
 
-connectDB();
+    await connectDB();
+
+    app.listen(3000, () => {
+        console.log("Servidor corriendo en puerto 3000");
+    });
+};
+
+startServer();

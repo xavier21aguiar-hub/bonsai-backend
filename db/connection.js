@@ -13,5 +13,6 @@ export const connectDB = async () => {
 
     } catch (error) {
         console.error("🔴 Error MongoDB:", error);
+        process.exit(1);
     }
 };
