@@ -5,6 +5,10 @@ const bonsaiSchema = new mongoose.Schema({
   species: String,
   lastWatered: Date,
   wateringHistory: [Date],
+  health: {
+    type: Number,
+    default: 80
+  },
   status: String,
   createdAt: {
     type: Date,

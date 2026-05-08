@@ -290,9 +290,33 @@ router.post("/water", async (req, res) => {
     const { id } = req.body;
     const now = new Date();
 
+    const bonsai = await Bonsai.findById(id);
+
+    let healtChange = 8;
+
+    const daysSinceWatering =
+    (Date.now() - new Date(bonsai.lastWatered)) / (1000 * 60 *60 *24);
+
+    //Sobre-riego
+    if(daysSinceWatering < 1){
+      healtChange = -12;
+    }
+
+    //Muy seco
+    if(daysSinceWatering > 4){
+      healtChange = -8;
+    }
+
+    let newHealth = bonsai.health + healtChange;
+
+    //Limites
+    if (newHealth > 100) newHealth = 100;
+    if (newHealth < 0) newHealth = 0;
+
     const updatedBonsai = await Bonsai.findByIdAndUpdate(
       id,
       { lastWatered: now,
+        health: newHealth,
         $push: {wateringHistory: now}
       },
       { new: true }
