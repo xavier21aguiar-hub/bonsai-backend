@@ -306,6 +306,26 @@ router.get("/care", async (req, res) => {
         "📈 Buen clima esperado para recuperación saludable";
     }
 
+    const xp = bonsai?.xp || 0;
+
+    const level = Math.floor(xp / 100) + 1;
+
+    const nextLevelXP = level * 100;
+
+    let gardenerTitle = "🌱 Jardinero Novato";
+
+    if (level >= 3) {
+      gardenerTitle = "🌿 Cuidador Experto";
+    }
+
+    if (level >= 5) {
+      gardenerTitle = "🏆 Maestro Bonsái";
+    }
+
+    if (level >= 8) {
+      gardenerTitle = "👑 Leyenda Botánica";
+    }
+
     res.json({
       climate,
       recommendations: finalRecommendations,
@@ -313,6 +333,10 @@ router.get("/care", async (req, res) => {
       timeDecisions: finalTimeDecisions,
       dailyInsight,
       healthPrediction,
+      xp,
+      level,
+      nextLevelXP,
+      gardenerTitle,
       health: {
         score: healthScore,
         status: healthStatus
@@ -367,20 +391,27 @@ router.post("/water", async (req, res) => {
 
     let healtChange = 8;
 
+    let xpChange = 15;
+
     const daysSinceWatering =
     (Date.now() - new Date(bonsai.lastWatered)) / (1000 * 60 *60 *24);
 
     //Sobre-riego
     if(daysSinceWatering < 1){
       healtChange = -12;
+      xpChange = -10;
     }
 
     //Muy seco
     if(daysSinceWatering > 4){
       healtChange = -8;
+      xpChange = -5;
     }
 
     let newHealth = bonsai.health + healtChange;
+
+    let newXP = bonsai.xp + xpChange;
+    if(newXP < 0) newXP = 0;
 
     //Limites
     if (newHealth > 100) newHealth = 100;
@@ -390,6 +421,7 @@ router.post("/water", async (req, res) => {
       id,
       { lastWatered: now,
         health: newHealth,
+        xp: newXP,
         $push: {
           wateringHistory: now,
           healthHistory: {
