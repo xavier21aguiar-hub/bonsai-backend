@@ -234,6 +234,45 @@ router.get("/care", async (req, res) => {
     else if (healthScore >= 50) healthStatus = "🟡 Atención";
     else healthStatus = "🔴 Crítico";
 
+    if (bonsai) {
+      let climateEffect = 0;
+      
+      // MUCHO CALOR
+      if (climate.temperature > 35) {
+        climateEffect -= 5;
+      }
+
+      // MUCHO FRÍO
+      if (climate.temperature < 5) {
+        climateEffect -= 8;
+      }
+
+      // HUMEDAD MUY BAJA
+      if (climate.humidity < 25) {
+        climateEffect -= 4;
+      }
+
+      // CLIMA IDEAL
+      if (
+        climate.temperature >= 18 &&
+        climate.temperature <= 28 &&
+        climate.humidity >= 40 &&
+        climate.humidity <= 70
+      ) {
+        climateEffect += 2;
+      }
+      
+      let updatedHealth = bonsai.health + climateEffect;
+
+      // límites
+      if (updatedHealth > 100) updatedHealth = 100;
+      if (updatedHealth < 0) updatedHealth = 0;
+
+      bonsai.health = updatedHealth;
+
+      await bonsai.save();
+    }
+
     res.json({
       climate,
       recommendations: finalRecommendations,
