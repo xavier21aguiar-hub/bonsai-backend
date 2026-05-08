@@ -21,23 +21,6 @@ router.get("/care", async (req, res) => {
     const timeline = evaluateForecastTimeline(forecast);
     const timeDecisions = generateTimeDecisions(timeline);
 
-    let finalTimeDecisions = [...timeDecisions];
-    const shouldBlockWatering =
-      finalRecommendations.some(r => r.action === "NO_REGAR");
-
-      if (shouldBlockWatering) {
-        finalTimeDecisions = finalTimeDecisions.map(decision => {
-          
-          if (decision.message.toLowerCase().includes("riega")) {
-            return {
-              ...decision,
-              message: "🚫 Evita regar por ahora"
-            };
-          }
-          return decision;
-        });
-      }
-
     const forecastAlerts = evaluateForecast(forecast);
 
     let recommendations = [];
@@ -170,6 +153,24 @@ router.get("/care", async (req, res) => {
         priority: "alta"
       });
     }
+
+    let finalTimeDecisions = [...timeDecisions];
+    
+    const shouldBlockWatering =
+      finalRecommendations.some(r => r.action === "NO_REGAR");
+
+      if (shouldBlockWatering) {
+        finalTimeDecisions = finalTimeDecisions.map(decision => {
+          
+          if (decision.message.toLowerCase().includes("riega")) {
+            return {
+              ...decision,
+              message: "🚫 Evita regar por ahora"
+            };
+          }
+          return decision;
+        });
+      }
 
     let healthScore = 100;
 
