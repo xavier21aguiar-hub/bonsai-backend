@@ -9,6 +9,15 @@ const bonsaiSchema = new mongoose.Schema({
     type: Number,
     default: 80
   },
+  healthHistory: [
+    {
+      value: Number,
+      date: {
+        type:Date,
+        default: Date.now
+      }
+    }
+  ],
   status: String,
   createdAt: {
     type: Date,

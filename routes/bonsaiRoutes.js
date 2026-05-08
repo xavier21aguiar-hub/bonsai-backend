@@ -270,6 +270,11 @@ router.get("/care", async (req, res) => {
 
       bonsai.health = updatedHealth;
 
+      bonsai.healthHistory.push({
+        value: updatedHealth,
+        date: new Date()
+      });
+
       await bonsai.save();
     }
 
@@ -356,7 +361,12 @@ router.post("/water", async (req, res) => {
       id,
       { lastWatered: now,
         health: newHealth,
-        $push: {wateringHistory: now}
+        $push: {
+          wateringHistory: now,
+          healthHistory: {
+            value: newHealth,
+            date: now
+          }}
       },
       { new: true }
     );
