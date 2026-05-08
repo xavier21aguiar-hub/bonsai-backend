@@ -144,7 +144,7 @@ export const generateTimeDecisions = (timeline) => {
     decisions.push({
       time: "mañana",
       action: "REGAR",
-      message: "🌅 Riega en la mañana — buen clima"
+      message: "🌅 Riega — buen clima"
     });
   }
 
@@ -161,7 +161,7 @@ export const generateTimeDecisions = (timeline) => {
     decisions.push({
       time: "tarde",
       action: "SACAR",
-      message: "☀️ Sácalo en la tarde"
+      message: "☀️ Sácalo"
     });
   }
 
