@@ -278,12 +278,41 @@ router.get("/care", async (req, res) => {
       await bonsai.save();
     }
 
+    let healthPrediction =
+    "🌿 Salud estable esperada en próximos días";
+
+    if (daysSinceWatering !== null && daysSinceWatering > 3){
+      healthPrediction =
+        "📉 Si no riegas pronto, la salud podría disminuir";
+    }
+
+    if ( recommendations.some(r => r.message.includes("demasiado seguido"))) {
+      healthPrediction =
+        "⚠️ El sobre-riego podría afectar raíces esta semana";
+    }
+
+    if (climate.temperature > 35) {
+      healthPrediction =
+        "🔥 Temperaturas extremas podrían bajar la salud";
+    }
+
+    if (
+      climate.temperature >= 18 &&
+      climate.temperature <= 28 &&
+      climate.humidity >= 40 &&
+      climate.humidity <= 70
+    ) {
+      healthPrediction =
+        "📈 Buen clima esperado para recuperación saludable";
+    }
+
     res.json({
       climate,
       recommendations: finalRecommendations,
       forecastTimeline: timeline,
       timeDecisions: finalTimeDecisions,
       dailyInsight,
+      healthPrediction,
       health: {
         score: healthScore,
         status: healthStatus
