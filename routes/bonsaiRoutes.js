@@ -172,6 +172,37 @@ router.get("/care", async (req, res) => {
         });
       }
 
+    let dailyInsight = "🌿 Todo luce estable hoy";
+
+    if (daysSinceWatering !== null && daysSinceWatering < 1) {
+      dailyInsight =
+      "💧 Tu planta ya fue regada recientemente — buen cuidado";
+    }
+
+    if (daysSinceWatering !== null && daysSinceWatering > 3) {
+      dailyInsight =
+      "🌱 Tu planta podría necesitar agua pronto";
+    }
+
+    if (climate.humidity > 80) {
+      dailyInsight =
+      "🌧️ La humedad natural ayudará a mantener hidratada tu planta";
+    }
+
+    if (climate.temperature > 32) {
+      dailyInsight =
+      "🔥 Temperaturas altas hoy — evita exposición prolongada al sol";
+    }
+
+    if (
+      recommendations.some(r =>
+      r.message.includes("demasiado seguido")
+      ) 
+    ) {
+      dailyInsight =
+      "⚠️ Estás regando demasiado frecuente — deja respirar la tierra";
+    }
+
     let healthScore = 100;
 
     if (daysSinceWatering !== null && daysSinceWatering < 0.5) {
@@ -208,6 +239,7 @@ router.get("/care", async (req, res) => {
       recommendations: finalRecommendations,
       forecastTimeline: timeline,
       timeDecisions: finalTimeDecisions,
+      dailyInsight,
       health: {
         score: healthScore,
         status: healthStatus
