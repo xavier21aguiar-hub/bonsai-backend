@@ -6,6 +6,7 @@ import { getForecast } from "../services/weatherService.js";
 import { evaluateForecast } from "../services/decisionEngine.js";
 import { evaluateForecastTimeline, generateTimeDecisions } from "../services/decisionEngine.js";
 import { Bonsai } from "../models/bonsai.js";
+import { speciesRules } from "../data/speciesRules.js";
 
 const router = express.Router();
 
@@ -28,6 +29,8 @@ router.get("/care", async (req, res) => {
     let daysSinceWatering = null;
 
     if(bonsai){
+      const species = speciesRules[bonsai.species] || speciesRules.juniper;
+
       daysSinceWatering =
       (Date.now() - new Date(bonsai.lastWatered)) / (1000 * 60 * 60 * 24);
 
@@ -40,7 +43,7 @@ router.get("/care", async (req, res) => {
           priority: "alta"
         });
       }
-      if(daysSinceWatering >= 2){
+      if(daysSinceWatering >= species.idealWaterDays){
         recommendations.push({
           action: "REGAR",
           message: "🌱 Han pasado varios días — considera regar",
@@ -125,6 +128,14 @@ router.get("/care", async (req, res) => {
       });
     }
 
+    if (climate.humidity < species.humidityPreference - 15) {
+      recommendations.push({
+        action: "HUMIDITY",
+        message: `💧 ${bonsai?.species || "bonsái"} necesita más humedad ambiental`,
+        priority: "media"
+      });
+    }
+
     let finalRecommendations = [...recommendations];
 
     //si ya no hay NO_REGAR por historial, elimina REGAR
@@ -173,6 +184,16 @@ router.get("/care", async (req, res) => {
       }
 
     let dailyInsight = "🌿 Todo luce estable hoy";
+
+    if (climate.temperature > species.heatTolerance) {
+      dailyInsight =
+      `🔥 Tu ${bonsai.species} siente mucho calor hoy`;
+    }
+    
+    if (climate.temperature < species.coldTolerance) {
+      dailyInsight =
+      `❄️ Tu ${bonsai.species} necesita protección del frío`;
+    }
 
     if (daysSinceWatering !== null && daysSinceWatering < 1) {
       dailyInsight =
@@ -238,12 +259,12 @@ router.get("/care", async (req, res) => {
       let climateEffect = 0;
       
       // MUCHO CALOR
-      if (climate.temperature > 35) {
+      if (climate.temperature > species.heatTolerance) {
         climateEffect -= 5;
       }
 
       // MUCHO FRÍO
-      if (climate.temperature < 5) {
+      if (climate.temperature < species.coldTolerance) {
         climateEffect -= 8;
       }
 
@@ -281,7 +302,7 @@ router.get("/care", async (req, res) => {
     let healthPrediction =
     "🌿 Salud estable esperada en próximos días";
 
-    if (daysSinceWatering !== null && daysSinceWatering > 3){
+    if (daysSinceWatering !== null && daysSinceWatering > species.idealWaterDays + 1){
       healthPrediction =
         "📉 Si no riegas pronto, la salud podría disminuir";
     }
@@ -389,26 +410,43 @@ router.post("/water", async (req, res) => {
 
     const bonsai = await Bonsai.findById(id);
 
-    let healtChange = 8;
-
+    let healthChange = 8;
     let xpChange = 15;
 
+    const hoursSinceWatering =
+      (Date.now() - new Date(bonsai.lastWatered)) / (1000 * 60 * 60);
+
     const daysSinceWatering =
-    (Date.now() - new Date(bonsai.lastWatered)) / (1000 * 60 *60 *24);
+      hoursSinceWatering / 24;
 
-    //Sobre-riego
-    if(daysSinceWatering < 1){
-      healtChange = -12;
-      xpChange = -10;
+    const species = speciesRules[bonsai.species] || speciesRules.juniper;
+
+    /* Anti spam */
+    if (hoursSinceWatering < 0.5) {
+      return res.status(400).json({
+        error: "La planta fue regada hace muy poco 🌱"
+      });
     }
 
-    //Muy seco
-    if(daysSinceWatering > 4){
-      healtChange = -8;
-      xpChange = -5;
+    /* Sobre-riego ligero */
+    if (hoursSinceWatering >= 0.5 && hoursSinceWatering < 6){
+      healthChange= -4;
+      xpChange= -2;
     }
 
-    let newHealth = bonsai.health + healtChange;
+    /* Riego ideal */
+    if (daysSinceWatering >= species.idealWaterDays - 1 && daysSinceWatering <= species.idealWaterDays + 1){
+      healthChange= 10;
+      xpChange= 20;
+    }
+
+    /* Planta muy seca */
+    if (daysSinceWatering > species.idealWaterDays + 2){
+      healthChange= -8;
+      xpChange= -5;
+    }
+
+    let newHealth = bonsai.health + healthChange;
 
     let newXP = bonsai.xp + xpChange;
     if(newXP < 0) newXP = 0;
@@ -417,11 +455,54 @@ router.post("/water", async (req, res) => {
     if (newHealth > 100) newHealth = 100;
     if (newHealth < 0) newHealth = 0;
 
+    const mood = newHealth >= 80
+      ? "happy"
+      : newHealth >= 50
+        ? "normal"
+        : "sad";
+    
+    let state = "normal";
+
+    /* Creciendo */
+    if (daysSinceWatering >= 1 &&
+      daysSinceWatering <= 3 && newHealth >= 80
+    ) {
+      state= "growing";
+    }
+
+    /* Sedienta */
+    if (daysSinceWatering >= species.idealWaterDays + 2) {
+      state= "thirsty";
+    }
+
+    /* Sobre-riego */
+    if (hoursSinceWatering >= 0.5 &&
+      hoursSinceWatering < 6
+    ) {
+      state= "overwatered";
+    }
+
+    /* Descansando */
+    if (daysSinceWatering < 1 &&
+      newHealth >= 60
+    ) {
+      state = "resting";
+    }
+
+    /* Perfecta */
+    if (newHealth >= 95 && daysSinceWatering >= species.idealWaterDays - 1 &&
+      daysSinceWatering <= species.idealWaterDays
+    ) {
+      state = "perfect";
+    }
+
     const updatedBonsai = await Bonsai.findByIdAndUpdate(
       id,
       { lastWatered: now,
         health: newHealth,
         xp: newXP,
+        mood,
+        state,
         $push: {
           wateringHistory: now,
           healthHistory: {

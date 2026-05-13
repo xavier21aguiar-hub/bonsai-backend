@@ -9,6 +9,14 @@ const bonsaiSchema = new mongoose.Schema({
     type: Number,
     default: 80
   },
+  mood: {
+    type: String,
+    default: "normal"
+  },
+  state: {
+    type: String,
+    default: "normal"
+  },
   xp: {
     type: Number,
     default: 0
