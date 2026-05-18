@@ -515,4 +515,15 @@ router.post("/water", async (req, res) => {
   }
 });
 
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Bonsai.findByIdAndDelete(id);
+    res.json({ message: "Bonsái eliminado correctamente" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al eliminar el bonsái" });
+  }
+});
+
 export default router;

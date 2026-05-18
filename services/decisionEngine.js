@@ -144,7 +144,7 @@ export const generateTimeDecisions = (timeline) => {
     decisions.push({
       time: "mañana",
       action: "REGAR",
-      message: "🌅 Riega — buen clima"
+      message: "🌅 Aprovecha el buen clima matutino para revisar y regar"
     });
   }
 
@@ -152,7 +152,7 @@ export const generateTimeDecisions = (timeline) => {
     decisions.push({
       time: "mañana",
       action: "NO_REGAR",
-      message: "🌧️ Evita regar — posible lluvia"
+      message: "🌧️ Podría llover temprano, deja que la naturaleza haga el riego"
     });
   }
 
@@ -161,7 +161,7 @@ export const generateTimeDecisions = (timeline) => {
     decisions.push({
       time: "tarde",
       action: "SACAR",
-      message: "☀️ Sácalo"
+      message: "☀️ Excelente momento para que tomen luz solar directa"
     });
   }
 
@@ -170,7 +170,15 @@ export const generateTimeDecisions = (timeline) => {
     decisions.push({
       time: "noche",
       action: "PROTEGER",
-      message: "❄️ Protégelo en la noche"
+      message: "❄️ Refúgialas en el interior para protegerlas del frío nocturno"
+    });
+  }
+
+  if (decisions.length === 0) {
+    decisions.push({
+      time: "día",
+      action: "OBSERVAR",
+      message: "🌿 Un día tranquilo, solo disfruta de su compañía"
     });
   }
 
