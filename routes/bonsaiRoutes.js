@@ -76,7 +76,7 @@ router.get("/care", async (req, res) => {
         if(avgInterval < 1){
           recommendations.push({
             action: "ALERTA",
-            message: "⚠️ Estás regando demasiado seguido",
+            message: "⚠️ ¡Uy! Parece que a tus pequeñas les vendría bien un respiro de tanta agua",
             priority: "alta"
           });
         }
@@ -84,7 +84,7 @@ router.get("/care", async (req, res) => {
         if(avgInterval > 3){
           recommendations.push({
             action: "ALERTA",
-            message: "🌵 Estás dejando secar demasiado la planta",
+            message: "🌵 Tu pequeño jardín está pidiendo agüita a gritos",
             priority: "alta"
           });
         }
@@ -92,7 +92,7 @@ router.get("/care", async (req, res) => {
         if(avgInterval >= 1 && avgInterval <= 3){
           recommendations.push({
             action: "OK",
-            message: "✅ Buena frecuencia de riego",
+            message: "✅ ¡Buen trabajo! Tienes un ritmo de riego excelente",
             priority: "baja"
           });
         }
@@ -102,7 +102,7 @@ router.get("/care", async (req, res) => {
     if (climate.humidity < 40 && climate.temperature > 18) {
       recommendations.push({
         action: "REGAR",
-        message: "🌱 Riega hoy — humedad baja",
+        message: "🌱 El clima está seco, ¡un buen día para refrescar tus plantas!",
         priority: "alta"
       });
     }
@@ -110,7 +110,7 @@ router.get("/care", async (req, res) => {
     if(climate.humidity > 80){
       recommendations.push({
         action: "NO REGAR",
-        message: "🌧️ Alta humedad — evita riego",
+        message: "🌧️ Hay bastante humedad hoy, mejor no regar",
         priority: "alta"
       });
     }
@@ -118,7 +118,7 @@ router.get("/care", async (req, res) => {
     if(climate.temperature < 8){
       recommendations.push ({
         action: "PROTEGER",
-        message: "❄️ Riesgo de frío — mételo",
+        message: "❄️ ¡Brrr! Mete tus plantitas para protegerlas del frío",
         priority: "alta"
       });
     }
@@ -126,7 +126,7 @@ router.get("/care", async (req, res) => {
     if (climate.temperature > 15) {
       recommendations.push({
         action: "SACAR",
-        message: "☀️ Sácalo unas horas",
+        message: "☀️ Un lindo día para que tomen un poco de sol",
         priority: "media"
       });
     }
@@ -134,7 +134,7 @@ router.get("/care", async (req, res) => {
     if (climate.humidity < species.humidityPreference - 15) {
       recommendations.push({
         action: "HUMIDITY",
-        message: `💧 ${bonsai?.species || "bonsái"} necesita más humedad ambiental`,
+        message: `💧 A tu jardín le encantaría un ambiente un poquito más húmedo`,
         priority: "media"
       });
     }
@@ -163,7 +163,7 @@ router.get("/care", async (req, res) => {
     if(forecastAlerts.some(alert => alert.type === "TEMP_ALERT")){
       finalRecommendations.push({
         action: "PROTEGER",
-        message: "❄️ Bajará la temperatura — protege tu bonsái",
+        message: "❄️ El clima va a enfriar, ve buscando cobijo para tus amigas",
         priority: "alta"
       });
     }
@@ -186,45 +186,38 @@ router.get("/care", async (req, res) => {
         });
       }
 
-    let dailyInsight = "🌿 Todo luce estable hoy";
+    let dailyInsight = "🌿 ¡Todo luce de maravilla en tu jardín hoy!";
 
     if (climate.temperature > species.heatTolerance) {
-      dailyInsight =
-      `🔥 Tu ${bonsai.species} siente mucho calor hoy`;
+      dailyInsight = "🔥 Hace bastante calor, asegúrate de mantenerlas hidratadas";
     }
     
     if (climate.temperature < species.coldTolerance) {
-      dailyInsight =
-      `❄️ Tu ${bonsai.species} necesita protección del frío`;
+      dailyInsight = "❄️ Día frío, mantén a tus amigas verdes bien abrigadas en el interior";
     }
 
     if (daysSinceWatering !== null && daysSinceWatering < 1) {
-      dailyInsight =
-      "💧 Tu planta ya fue regada recientemente — buen cuidado";
+      dailyInsight = "💧 Recién hidratadas. ¡Tu jardín te lo agradece!";
     }
 
     if (daysSinceWatering !== null && daysSinceWatering > 3) {
-      dailyInsight =
-      "🌱 Tu planta podría necesitar agua pronto";
+      dailyInsight = "🌱 Dales un vistazo, puede que algunas ya tengan sed";
     }
 
     if (climate.humidity > 80) {
-      dailyInsight =
-      "🌧️ La humedad natural ayudará a mantener hidratada tu planta";
+      dailyInsight = "🌧️ La humedad natural es como un spa gratis para tus plantas hoy";
     }
 
     if (climate.temperature > 32) {
-      dailyInsight =
-      "🔥 Temperaturas altas hoy — evita exposición prolongada al sol";
+      dailyInsight = "🔥 El sol está muy fuerte, búscales un lugarcito con sombra";
     }
 
     if (
       recommendations.some(r =>
-      r.message.includes("demasiado seguido")
+      r.message.includes("respiro de tanta agua")
       ) 
     ) {
-      dailyInsight =
-      "⚠️ Estás regando demasiado frecuente — deja respirar la tierra";
+      dailyInsight = "⚠️ Ten cuidado de no ahogarlas, mejor dales un descansito de agua";
     }
 
     let healthScore = 100;
@@ -302,22 +295,18 @@ router.get("/care", async (req, res) => {
       await bonsai.save();
     }
 
-    let healthPrediction =
-    "🌿 Salud estable esperada en próximos días";
+    let healthPrediction = "🌿 Las raíces están felices, pronóstico muy favorable";
 
     if (daysSinceWatering !== null && daysSinceWatering > species.idealWaterDays + 1){
-      healthPrediction =
-        "📉 Si no riegas pronto, la salud podría disminuir";
+      healthPrediction = "📉 Ten cuidado, la falta de agua prolongada las pone tristes";
     }
 
-    if ( recommendations.some(r => r.message.includes("demasiado seguido"))) {
-      healthPrediction =
-        "⚠️ El sobre-riego podría afectar raíces esta semana";
+    if ( recommendations.some(r => r.message.includes("respiro"))) {
+      healthPrediction = "⚠️ Vigila no ahogar las raíces, podría causar problemas a largo plazo";
     }
 
     if (climate.temperature > 35) {
-      healthPrediction =
-        "🔥 Temperaturas extremas podrían bajar la salud";
+      healthPrediction = "🔥 Una ola de calor viene en camino, requerirán cuidados extra";
     }
 
     if (
@@ -326,8 +315,7 @@ router.get("/care", async (req, res) => {
       climate.humidity >= 40 &&
       climate.humidity <= 70
     ) {
-      healthPrediction =
-        "📈 Buen clima esperado para recuperación saludable";
+      healthPrediction = "📈 ¡Clima perfecto! Ideal para que sigan creciendo radiantes";
     }
 
     const xp = bonsai?.xp || 0;
