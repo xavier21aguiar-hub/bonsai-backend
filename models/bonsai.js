@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const bonsaiSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   name: String,
   species: String,
   lastWatered: Date,

@@ -12,12 +12,16 @@ const router = express.Router();
 
 router.get("/care", async (req, res) => {
   try {
-    const { city, lat, lon } = req.query;
+    const { city, lat, lon, userId } = req.query;
 
     const climate = await getWeather(city, lat, lon);
     const forecast = await getForecast(city, lat, lon);
 
-    const bonsai = await Bonsai.findOne().sort({ createdAt: -1 });
+    let bonsaiQuery = {};
+    if (userId) {
+      bonsaiQuery.user = userId;
+    }
+    const bonsai = await Bonsai.findOne(bonsaiQuery).sort({ createdAt: -1 });
 
     const timeline = evaluateForecastTimeline(forecast);
     const timeDecisions = generateTimeDecisions(timeline);
@@ -27,10 +31,9 @@ router.get("/care", async (req, res) => {
     let recommendations = [];
 
     let daysSinceWatering = null;
+    const species = bonsai ? (speciesRules[bonsai.species] || speciesRules.juniper) : speciesRules.juniper;
 
     if(bonsai){
-      const species = speciesRules[bonsai.species] || speciesRules.juniper;
-
       daysSinceWatering =
       (Date.now() - new Date(bonsai.lastWatered)) / (1000 * 60 * 60 * 24);
 
@@ -376,11 +379,12 @@ router.get("/care", async (req, res) => {
 
 router.post("/create", async (req, res) => {
   try {
-    const { name, species } = req.body;
+    const { name, species, userId } = req.body;
 
     const now = new Date();
 
     const newBonsai = new Bonsai({
+      user: userId,
       name,
       species,
       lastWatered: now,
@@ -399,7 +403,9 @@ router.post("/create", async (req, res) => {
 });
 
 router.get("/all", async (req, res) => {
-  const bonsais = await Bonsai.find();
+  const { userId } = req.query;
+  const query = userId ? { user: userId } : {};
+  const bonsais = await Bonsai.find(query);
   res.json(bonsais);
 });
 
