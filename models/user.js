@@ -9,6 +9,14 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  leaves: {
+    type: Number,
+    default: 0
+  },
+  unlockedAchievements: {
+    type: [String],
+    default: []
   }
 }, { timestamps: true });
 

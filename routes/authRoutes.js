@@ -30,7 +30,9 @@ router.post("/register", async (req, res) => {
 
     res.json({
       _id: newUser._id,
-      username: newUser.username
+      username: newUser.username,
+      leaves: newUser.leaves || 0,
+      unlockedAchievements: newUser.unlockedAchievements || []
     });
   } catch (error) {
     console.error(error);
@@ -58,11 +60,44 @@ router.post("/login", async (req, res) => {
 
     res.json({
       _id: user._id,
-      username: user.username
+      username: user.username,
+      leaves: user.leaves || 0,
+      unlockedAchievements: user.unlockedAchievements || []
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al iniciar sesión" });
+  }
+});
+
+router.post("/update-rewards", async (req, res) => {
+  try {
+    const { userId, newLeaves, newAchievement } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: "userId es requerido" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    if (newLeaves) {
+      user.leaves += newLeaves;
+    }
+
+    if (newAchievement && !user.unlockedAchievements.includes(newAchievement)) {
+      user.unlockedAchievements.push(newAchievement);
+    }
+
+    await user.save();
+
+    res.json({
+      leaves: user.leaves,
+      unlockedAchievements: user.unlockedAchievements
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al actualizar recompensas" });
   }
 });
 
