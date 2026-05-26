@@ -17,6 +17,14 @@ const userSchema = new mongoose.Schema({
   unlockedAchievements: {
     type: [String],
     default: []
+  },
+  purchasedItems: {
+    type: [String],
+    default: []
+  },
+  equippedPot: {
+    type: String,
+    default: "terracota"
   }
 }, { timestamps: true });
 

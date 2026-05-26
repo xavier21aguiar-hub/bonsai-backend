@@ -32,7 +32,9 @@ router.post("/register", async (req, res) => {
       _id: newUser._id,
       username: newUser.username,
       leaves: newUser.leaves || 0,
-      unlockedAchievements: newUser.unlockedAchievements || []
+      unlockedAchievements: newUser.unlockedAchievements || [],
+      purchasedItems: newUser.purchasedItems || [],
+      equippedPot: newUser.equippedPot || "terracota"
     });
   } catch (error) {
     console.error(error);
@@ -62,7 +64,9 @@ router.post("/login", async (req, res) => {
       _id: user._id,
       username: user.username,
       leaves: user.leaves || 0,
-      unlockedAchievements: user.unlockedAchievements || []
+      unlockedAchievements: user.unlockedAchievements || [],
+      purchasedItems: user.purchasedItems || [],
+      equippedPot: user.equippedPot || "terracota"
     });
   } catch (error) {
     console.error(error);
@@ -98,6 +102,66 @@ router.post("/update-rewards", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error al actualizar recompensas" });
+  }
+});
+
+router.post("/purchase", async (req, res) => {
+  try {
+    const { userId, itemId, itemCost } = req.body;
+
+    if (!userId || !itemId || itemCost === undefined) {
+      return res.status(400).json({ error: "userId, itemId y itemCost son requeridos" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    if (user.purchasedItems.includes(itemId)) {
+      return res.status(400).json({ error: "Ya tienes este artículo" });
+    }
+
+    if (user.leaves < itemCost) {
+      return res.status(400).json({ error: "No tienes suficientes hojas" });
+    }
+
+    user.leaves -= itemCost;
+    user.purchasedItems.push(itemId);
+
+    await user.save();
+
+    res.json({
+      leaves: user.leaves,
+      purchasedItems: user.purchasedItems,
+      equippedPot: user.equippedPot
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al realizar la compra" });
+  }
+});
+
+router.post("/equip", async (req, res) => {
+  try {
+    const { userId, potId } = req.body;
+
+    if (!userId || !potId) {
+      return res.status(400).json({ error: "userId y potId son requeridos" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    if (potId !== "terracota" && !user.purchasedItems.includes(potId)) {
+      return res.status(403).json({ error: "No tienes este artículo" });
+    }
+
+    user.equippedPot = potId;
+    await user.save();
+
+    res.json({ equippedPot: user.equippedPot });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Error al equipar artículo" });
   }
 });
 
